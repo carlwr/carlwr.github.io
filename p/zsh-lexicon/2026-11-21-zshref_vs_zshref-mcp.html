@@ -1,0 +1,444 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>zshref Arms Eval</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* layout: single reading column (~72ch) with full-width tables that scroll in their own box */
+:root {
+  --bg: #f7f8fa; --panel: #ffffff; --fg: #15181d; --fg2: #4a515c; --muted: #6b7380;
+  --rule: #dfe3ea; --accent: #2456a6; --code-bg: #eef1f6;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --good: #0f7b3e; --warn: #9a6200;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-head: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121418; --panel: #191c21; --fg: #e8eaee; --fg2: #b5bcc7; --muted: #8b93a0;
+  --rule: #2c313a; --accent: #7fa8ea; --code-bg: #20242b;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --good: #4cc27f; --warn: #e0a440; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121418; --panel: #191c21; --fg: #e8eaee; --fg2: #b5bcc7; --muted: #8b93a0;
+  --rule: #2c313a; --accent: #7fa8ea; --code-bg: #20242b;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --good: #4cc27f; --warn: #e0a440; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.6 var(--f-body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 72ch; }
+h1, h2, h3 { font-family: var(--f-head); font-weight: 600; line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.35rem; margin-top: 2.6rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.05rem; margin-top: 1.6rem; }
+p, ul, ol { margin: 0.6rem 0; }
+li { margin: 0.2rem 0; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--f-mono); font-size: 0.88em; }
+code { background: var(--code-bg); padding: 0.05em 0.3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: 10px 12px; border-radius: 4px; overflow-x: auto; font: 12.5px/1.5 var(--f-mono); margin: 0.5rem 0; }
+pre code { background: none; padding: 0; }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.08rem; color: var(--fg2); margin-top: 0.8rem; }
+.verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 1.4rem 0 0.4rem; }
+.verdict { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+.verdict .big { font: 600 1.7rem/1.1 var(--f-head); font-variant-numeric: tabular-nums; }
+.verdict .what { color: var(--fg2); font-size: 0.9rem; margin-top: 4px; }
+.verdict .k { color: var(--muted); font: 12px var(--f-mono); }
+.tbl { overflow-x: auto; margin: 0.8rem 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; white-space: nowrap; }
+thead th { font-weight: 600; color: var(--fg2); background: var(--code-bg); font-size: 12px; }
+tbody th { font-weight: 500; }
+td.num { text-align: right; }
+tr.tot td, tr.tot th { font-weight: 600; background: color-mix(in srgb, var(--code-bg) 60%, transparent); }
+tr:last-child td, tr:last-child th { border-bottom: 0; }
+.k { color: var(--muted); font-family: var(--f-mono); font-size: 11.5px; }
+.ci { color: var(--muted); font-family: var(--f-mono); font-size: 11px; }
+.fig { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 12px 6px; margin: 0.8rem 0; overflow-x: auto; }
+.fig figcaption { color: var(--fg2); font-size: 13px; margin: 0 0 6px; }
+svg.chart { width: 100%; min-width: 560px; height: auto; display: block; font-family: var(--f-body); }
+svg .grid { stroke: var(--rule); stroke-width: 1; }
+svg .sep { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 3; }
+svg .tick { fill: var(--muted); font-size: 11px; font-family: var(--f-mono); }
+svg .lab { fill: var(--fg2); font-size: 12.5px; }
+svg .lab.strong { fill: var(--fg); font-weight: 600; }
+svg .val { fill: var(--fg2); font-size: 11px; font-family: var(--f-mono); }
+svg .whisk { stroke-width: 2; stroke-linecap: round; }
+svg .dot { stroke: var(--panel); stroke-width: 2; }
+svg .hit { fill: transparent; }
+svg .s1 .whisk { stroke: var(--s1); } svg .s1 .dot, svg .s1 .bar { fill: var(--s1); }
+svg .s2 .whisk { stroke: var(--s2); } svg .s2 .dot, svg .s2 .bar { fill: var(--s2); }
+svg .s3 .whisk { stroke: var(--s3); } svg .s3 .dot, svg .s3 .bar { fill: var(--s3); }
+svg .mark:hover .dot { r: 7; } svg .mark:hover .bar { opacity: 0.8; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--fg2); padding: 4px 2px 6px; }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.sw.s1 { background: var(--s1); } .sw.s2 { background: var(--s2); } .sw.s3 { background: var(--s3); }
+details { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 12px; margin: 0.6rem 0; }
+summary { cursor: pointer; font-weight: 500; }
+summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note { color: var(--fg2); font-size: 0.92rem; }
+.pill { display: inline-block; font: 500 11px/1.6 var(--f-mono); padding: 0 6px; border-radius: 3px; background: var(--code-bg); color: var(--fg2); }
+@media (max-width: 520px) { h1 { font-size: 1.6rem; } .verdict .big { font-size: 1.45rem; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<div class=wrap>
+<header class=prose>
+  <div class=eyebrow>cli-ux-probe · comparative arms · 2026-11-21</div>
+  <h1>zshref CLI vs zshref-mcp vs no reference</h1>
+  <p class=lede>Four cheap models solved execution-graded zsh 5.9 items with no reference, with the <code>zshref</code> CLI, or with the <code>zshref-mcp</code> server. Either reference roughly doubles the pass rate over trained knowledge. The CLI and the MCP server are indistinguishable on correctness, and they cost about the same per solved item. They differ in how models use them, and the cost picture flips between models.</p>
+</header>
+
+<section class=verdicts aria-label="Headline numbers">
+  <div class=verdict><div class=eyebrow>no reference</div><div class=big>21%</div><div class=k>23/110 · 95% CI 14–29</div><div class=what>Trained knowledge only, no tools at all.</div></div>
+  <div class=verdict><div class=eyebrow>zshref CLI</div><div class=big>45%</div><div class=k>49/110 · 95% CI 36–54</div><div class=what>vs none: 31 pairs won, 5 lost, p = 1×10⁻⁵</div></div>
+  <div class=verdict><div class=eyebrow>zshref-mcp</div><div class=big>44%</div><div class=k>48/110 · 95% CI 35–53</div><div class=what>vs none: 31 won, 6 lost, p = 4×10⁻⁵</div></div>
+  <div class=verdict><div class=eyebrow>MCP vs CLI</div><div class=big>12 : 13</div><div class=k>MCP-only : CLI-only passes · p = 1.0</div><div class=what>No detectable correctness difference, overall or for any model.</div></div>
+</section>
+
+<div class=prose>
+<h2>Findings</h2>
+<ol>
+  <li><b>A reference helps, and either interface delivers it.</b> On 11 items, a paired comparison on (model, item, replicate) gives CLI over none at 31 wins to 5 and MCP over none at 31 to 6. Between the two, MCP alone passed 12 pairs and the CLI alone 13. Per model the MCP-only to CLI-only split is 5:4 (haiku), 2:3 (luna), 2:4 (deepseek) and 3:2 (gemini).</li>
+  <li><b>Cost per solved item is a wash, but uncached input flips by model.</b> Over its no-reference baseline, MCP adds about half the uncached input the CLI does for haiku (+1.6k vs +3.1k tokens) and deepseek (+2.7k vs +5.4k). For luna it adds more (+4.7k vs +3.8k). The cost per pass is $0.0023 vs $0.0029 (haiku), $0.0025 vs $0.0020 (luna) and $0.0036 vs $0.0045 (deepseek), MCP first. The tool schemas ride along in every MCP call; the CLI's cost goes into exploration. Per solved item, the knowledge-only arm is not cheaper ($0.0027 haiku, $0.0036 luna, $0.0033 deepseek): the extra tokens buy roughly proportional extra passes.</li>
+  <li><b>Use rate differs by model, not by interface, with one exception.</b> gemini-3.1-flash-lite never invoked the CLI (0/11 sessions here, 0/4 in the pilot); it tried to run a missing <code>zsh</code> instead. It called the MCP tools in 9/11 sessions. Haiku skipped either tool when it felt sure (CLI 22/33, MCP 24/33). Luna and deepseek used both every time.</li>
+  <li><b>The CLI invites exploration; MCP answers come in fewer, smaller results.</b> In sessions that used the reference, the CLI returned 2–4× more text: a median of 7.0k vs 1.7k characters (haiku), 8.3k vs 3.7k (luna) and 22.7k vs 8.0k (deepseek). Deepseek used up the 15-call budget in 26 of 33 CLI sessions (10 of 33 on MCP), with 31 <code>--help</code> reads and 41 failed calls.</li>
+  <li><b>The commonest CLI mistake is man-style positional lookup.</b> Most failed calls were <code>zshref &lt;topic&gt;</code>, for example <code>zshref zparseopts</code>, <code>zshref '(R)'</code> or <code>zshref 'Subscript Flags'</code>, which fail with <code>unrecognized subcommand</code>. Next came guessed category names (<code>modifier</code>, <code>syntax</code>, <code>value</code>). MCP calls failed only when the budget refused them.</li>
+  <li><b>Gaps in the reference cost calls without changing the outcome.</b> The <code>$(( [#16] … ))</code> output-base syntax and the <code>##A</code> character code (item P10) have no record in the reference. All arms passed 1/7; the tool arms spent 74 (CLI) and 55 (MCP) calls hunting. P10 is excluded from every number above.</li>
+  <li><b>A reference can also hurt.</b> On W02 (recursive glob with exclusion), the no-reference arm wrote plain loops and passed 6/10. The CLI arm, steered toward <code>~</code> exclusion patterns from the docs, passed 4/10. Elsewhere, deepseek copied the docs' example values (<code>b=(a b)</code>) into its predicted output.</li>
+  <li><b>Campaign mode shows no clear interface learning.</b> Over 3 items per session, the no-reference arm scored 0/27, CLI 9/27 and MCP 13/27. CLI <code>--help</code> reads and errors bunch in the first turn (4 help reads and 6 errors at position 1, none at position 2). Pass rates by position, n = 9 per cell, show no trend that rises above noise.</li>
+</ol>
+
+<h2>Correctness</h2>
+<p>Pass rate per arm with Wilson 95% intervals. Each session got one item: haiku, luna and deepseek ran 11 items × 3 replicates per arm; gemini ran 1 replicate, at a lower n because of its price.</p>
+</div>
+<figure class=fig><figcaption>Pass rate by model and arm (task mode, P10 excluded). Hover a mark for k/n and its interval.</figcaption><svg viewBox="0 0 720 334" role="img" aria-label="Pass rate by arm and model, with 95% intervals" class=chart>
+<line x1="210.0" x2="210.0" y1="26" y2="308" class=grid />
+<text x="210.0" y="326" class=tick text-anchor=middle>0%</text>
+<line x1="331.5" x2="331.5" y1="26" y2="308" class=grid />
+<text x="331.5" y="326" class=tick text-anchor=middle>25%</text>
+<line x1="453.0" x2="453.0" y1="26" y2="308" class=grid />
+<text x="453.0" y="326" class=tick text-anchor=middle>50%</text>
+<line x1="574.5" x2="574.5" y1="26" y2="308" class=grid />
+<text x="574.5" y="326" class=tick text-anchor=middle>75%</text>
+<line x1="696.0" x2="696.0" y1="26" y2="308" class=grid />
+<text x="696.0" y="326" class=tick text-anchor=middle>100%</text>
+<text x="196" y="65.0" text-anchor=end class="lab strong">All models, pooled</text>
+<g class="mark s1"><title>All models, pooled · none (knowledge): 21% (23/110), 95% CI [14–29]</title><line x1="279.8" x2="353.0" y1="46" y2="46" class=whisk /><circle cx="311.6" cy="46" r="5" class=dot /><rect x="275.8" y="39" width="81.2" height="14" class=hit /></g>
+<g class="mark s2"><title>All models, pooled · zshref CLI: 45% (49/110), 95% CI [36–54]</title><line x1="383.0" x2="471.8" y1="60" y2="60" class=whisk /><circle cx="426.5" cy="60" r="5" class=dot /><rect x="379.0" y="53" width="96.8" height="14" class=hit /></g>
+<g class="mark s3"><title>All models, pooled · zshref-mcp: 44% (48/110), 95% CI [35–53]</title><line x1="378.8" x2="467.4" y1="74" y2="74" class=whisk /><circle cx="422.1" cy="74" r="5" class=dot /><rect x="374.8" y="67" width="96.6" height="14" class=hit /></g>
+<line x1="10" x2="696" y1="84" y2="84" class=sep />
+<text x="196" y="119.0" text-anchor=end class="lab">claude-haiku-5-5</text>
+<g class="mark s1"><title>claude-haiku-5-5 · none (knowledge): 30% (10/33), 95% CI [17–47]</title><line x1="294.4" x2="440.1" y1="100" y2="100" class=whisk /><circle cx="357.3" cy="100" r="5" class=dot /><rect x="290.4" y="93" width="153.6" height="14" class=hit /></g>
+<g class="mark s2"><title>claude-haiku-5-5 · zshref CLI: 52% (17/33), 95% CI [35–67]</title><line x1="381.2" x2="538.0" y1="114" y2="114" class=whisk /><circle cx="460.4" cy="114" r="5" class=dot /><rect x="377.2" y="107" width="164.9" height="14" class=hit /></g>
+<g class="mark s3"><title>claude-haiku-5-5 · zshref-mcp: 55% (18/33), 95% CI [38–70]</title><line x1="394.6" x2="551.0" y1="128" y2="128" class=whisk /><circle cx="475.1" cy="128" r="5" class=dot /><rect x="390.6" y="121" width="164.4" height="14" class=hit /></g>
+<line x1="10" x2="696" y1="138" y2="138" class=sep />
+<text x="196" y="173.0" text-anchor=end class="lab">gpt-6-luna</text>
+<g class="mark s1"><title>gpt-6-luna · none (knowledge): 15% (5/33), 95% CI [7–31]</title><line x1="242.3" x2="360.3" y1="154" y2="154" class=whisk /><circle cx="283.6" cy="154" r="5" class=dot /><rect x="238.3" y="147" width="126.0" height="14" class=hit /></g>
+<g class="mark s2"><title>gpt-6-luna · zshref CLI: 42% (14/33), 95% CI [27–59]</title><line x1="342.4" x2="497.7" y1="168" y2="168" class=whisk /><circle cx="416.2" cy="168" r="5" class=dot /><rect x="338.4" y="161" width="163.3" height="14" class=hit /></g>
+<g class="mark s3"><title>gpt-6-luna · zshref-mcp: 39% (13/33), 95% CI [25–56]</title><line x1="330.0" x2="483.7" y1="182" y2="182" class=whisk /><circle cx="401.5" cy="182" r="5" class=dot /><rect x="326.0" y="175" width="161.7" height="14" class=hit /></g>
+<line x1="10" x2="696" y1="192" y2="192" class=sep />
+<text x="196" y="227.0" text-anchor=end class="lab">deepseek-flash (no thinking)</text>
+<g class="mark s1"><title>deepseek-flash (no thinking) · none (knowledge): 18% (6/33), 95% CI [9–34]</title><line x1="251.8" x2="377.1" y1="208" y2="208" class=whisk /><circle cx="298.4" cy="208" r="5" class=dot /><rect x="247.8" y="201" width="133.3" height="14" class=hit /></g>
+<g class="mark s2"><title>deepseek-flash (no thinking) · zshref CLI: 39% (13/33), 95% CI [25–56]</title><line x1="330.0" x2="483.7" y1="222" y2="222" class=whisk /><circle cx="401.5" cy="222" r="5" class=dot /><rect x="326.0" y="215" width="161.7" height="14" class=hit /></g>
+<g class="mark s3"><title>deepseek-flash (no thinking) · zshref-mcp: 33% (11/33), 95% CI [20–50]</title><line x1="306.0" x2="454.9" y1="236" y2="236" class=whisk /><circle cx="372.0" cy="236" r="5" class=dot /><rect x="302.0" y="229" width="156.9" height="14" class=hit /></g>
+<line x1="10" x2="696" y1="246" y2="246" class=sep />
+<text x="196" y="281.0" text-anchor=end class="lab">gemini-3.1-flash-lite</text>
+<g class="mark s1"><title>gemini-3.1-flash-lite · none (knowledge): 18% (2/11), 95% CI [5–48]</title><line x1="235.0" x2="441.8" y1="262" y2="262" class=whisk /><circle cx="298.4" cy="262" r="5" class=dot /><rect x="231.0" y="255" width="214.9" height="14" class=hit /></g>
+<g class="mark s2"><title>gemini-3.1-flash-lite · zshref CLI: 45% (5/11), 95% CI [21–72]</title><line x1="313.4" x2="559.9" y1="276" y2="276" class=whisk /><circle cx="430.9" cy="276" r="5" class=dot /><rect x="309.4" y="269" width="254.5" height="14" class=hit /></g>
+<g class="mark s3"><title>gemini-3.1-flash-lite · zshref-mcp: 55% (6/11), 95% CI [28–79]</title><line x1="346.1" x2="592.6" y1="290" y2="290" class=whisk /><circle cx="475.1" cy="290" r="5" class=dot /><rect x="342.1" y="283" width="254.5" height="14" class=hit /></g>
+</svg><div class=legend><span><i class="sw s1"></i>none (knowledge)</span><span><i class="sw s2"></i>zshref CLI</span><span><i class="sw s3"></i>zshref-mcp</span></div></figure>
+<div class=tbl><table><thead><tr><th>model</th><th>none (knowledge)</th><th>zshref CLI</th><th>zshref-mcp</th></tr></thead><tbody>
+<tr><th scope=row>claude-haiku-5-5</th><td class=num>30% <span class=k>10/33</span> <span class=ci>[17–47]</span></td><td class=num>52% <span class=k>17/33</span> <span class=ci>[35–67]</span></td><td class=num>55% <span class=k>18/33</span> <span class=ci>[38–70]</span></td></tr>
+<tr><th scope=row>gpt-6-luna</th><td class=num>15% <span class=k>5/33</span> <span class=ci>[7–31]</span></td><td class=num>42% <span class=k>14/33</span> <span class=ci>[27–59]</span></td><td class=num>39% <span class=k>13/33</span> <span class=ci>[25–56]</span></td></tr>
+<tr><th scope=row>deepseek-flash (no thinking)</th><td class=num>18% <span class=k>6/33</span> <span class=ci>[9–34]</span></td><td class=num>39% <span class=k>13/33</span> <span class=ci>[25–56]</span></td><td class=num>33% <span class=k>11/33</span> <span class=ci>[20–50]</span></td></tr>
+<tr><th scope=row>gemini-3.1-flash-lite</th><td class=num>18% <span class=k>2/11</span> <span class=ci>[5–48]</span></td><td class=num>45% <span class=k>5/11</span> <span class=ci>[21–72]</span></td><td class=num>55% <span class=k>6/11</span> <span class=ci>[28–79]</span></td></tr>
+<tr class=tot><th scope=row>all</th><td class=num><b>21%</b> <span class=k>23/110</span> <span class=ci>[14–29]</span></td><td class=num><b>45%</b> <span class=k>49/110</span> <span class=ci>[36–54]</span></td><td class=num><b>44%</b> <span class=k>48/110</span> <span class=ci>[35–53]</span></td></tr></tbody></table></div>
+
+<div class=prose>
+<h3>Paired comparisons</h3>
+<p>Pairs match on (model, item, replicate). "First only" means the first-named arm passed and the second failed. p is a two-sided exact sign test on the discordant pairs.</p>
+</div>
+<div class=tbl><table><thead><tr><th>comparison</th><th>scope</th><th>both pass</th><th>first only</th><th>second only</th><th>neither</th><th>p (sign test)</th></tr></thead><tbody>
+<tr class=tot><td>CLI vs none</td><td>all models</td><td class=num>18</td><td class=num>31</td><td class=num>5</td><td class=num>56</td><td class=num>1.29e-05</td></tr>
+<tr><td>CLI vs none</td><td>claude-haiku-5-5</td><td class=num>9</td><td class=num>8</td><td class=num>1</td><td class=num>15</td><td class=num>0.0391</td></tr>
+<tr><td>CLI vs none</td><td>gpt-6-luna</td><td class=num>4</td><td class=num>10</td><td class=num>1</td><td class=num>18</td><td class=num>0.0117</td></tr>
+<tr><td>CLI vs none</td><td>deepseek-flash (no thinking)</td><td class=num>3</td><td class=num>10</td><td class=num>3</td><td class=num>17</td><td class=num>0.0923</td></tr>
+<tr><td>CLI vs none</td><td>gemini-3.1-flash-lite</td><td class=num>2</td><td class=num>3</td><td class=num>0</td><td class=num>6</td><td class=num>0.25</td></tr>
+<tr class=tot><td>MCP vs none</td><td>all models</td><td class=num>17</td><td class=num>31</td><td class=num>6</td><td class=num>56</td><td class=num>4.13e-05</td></tr>
+<tr><td>MCP vs none</td><td>claude-haiku-5-5</td><td class=num>9</td><td class=num>9</td><td class=num>1</td><td class=num>14</td><td class=num>0.0215</td></tr>
+<tr><td>MCP vs none</td><td>gpt-6-luna</td><td class=num>3</td><td class=num>10</td><td class=num>2</td><td class=num>18</td><td class=num>0.0386</td></tr>
+<tr><td>MCP vs none</td><td>deepseek-flash (no thinking)</td><td class=num>3</td><td class=num>8</td><td class=num>3</td><td class=num>19</td><td class=num>0.227</td></tr>
+<tr><td>MCP vs none</td><td>gemini-3.1-flash-lite</td><td class=num>2</td><td class=num>4</td><td class=num>0</td><td class=num>5</td><td class=num>0.125</td></tr>
+<tr class=tot><td>MCP vs CLI</td><td>all models</td><td class=num>36</td><td class=num>12</td><td class=num>13</td><td class=num>49</td><td class=num>1</td></tr>
+<tr><td>MCP vs CLI</td><td>claude-haiku-5-5</td><td class=num>13</td><td class=num>5</td><td class=num>4</td><td class=num>11</td><td class=num>1</td></tr>
+<tr><td>MCP vs CLI</td><td>gpt-6-luna</td><td class=num>11</td><td class=num>2</td><td class=num>3</td><td class=num>17</td><td class=num>1</td></tr>
+<tr><td>MCP vs CLI</td><td>deepseek-flash (no thinking)</td><td class=num>9</td><td class=num>2</td><td class=num>4</td><td class=num>18</td><td class=num>0.688</td></tr>
+<tr><td>MCP vs CLI</td><td>gemini-3.1-flash-lite</td><td class=num>3</td><td class=num>3</td><td class=num>2</td><td class=num>3</td><td class=num>1</td></tr></tbody></table></div>
+
+<div class=prose>
+<h3>Per item</h3>
+<p>Items were picked by their pass rate in a separate no-reference calibration run (all 4 models, 1 replicate each, fresh sessions). Items that every model passed there were dropped as ceiling items. P13 (quoting flags) and P14 (split flags) are 0 in every arm, so the reference didn't make them solvable for these models.</p>
+</div>
+<div class=tbl><table><thead><tr><th>item</th><th>area</th><th>shape</th><th>calibration (none)</th><th>none (knowledge)</th><th>zshref CLI</th><th>zshref-mcp</th></tr></thead><tbody>
+<tr><th scope=row><code>P01-pad</code></th><td>param-flags</td><td>predict</td><td class=num>1/4</td><td class=num>10% <span class=k>1/10</span> <span class=ci>[2–40]</span></td><td class=num>30% <span class=k>3/10</span> <span class=ci>[11–60]</span></td><td class=num>30% <span class=k>3/10</span> <span class=ci>[11–60]</span></td></tr>
+<tr><th scope=row><code>P02-zip</code></th><td>param-expn</td><td>predict</td><td class=num>0/4</td><td class=num>10% <span class=k>1/10</span> <span class=ci>[2–40]</span></td><td class=num>90% <span class=k>9/10</span> <span class=ci>[60–98]</span></td><td class=num>90% <span class=k>9/10</span> <span class=ci>[60–98]</span></td></tr>
+<tr><th scope=row><code>P03-subscr</code></th><td>arrays</td><td>predict</td><td class=num>3/4</td><td class=num>70% <span class=k>7/10</span> <span class=ci>[40–89]</span></td><td class=num>100% <span class=k>10/10</span> <span class=ci>[72–100]</span></td><td class=num>100% <span class=k>10/10</span> <span class=ci>[72–100]</span></td></tr>
+<tr><th scope=row><code>P06-modif</code></th><td>param-expn</td><td>predict</td><td class=num>0/4</td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td><td class=num>30% <span class=k>3/10</span> <span class=ci>[11–60]</span></td><td class=num>30% <span class=k>3/10</span> <span class=ci>[11–60]</span></td></tr>
+<tr><th scope=row><code>P13-quote</code></th><td>param-flags</td><td>predict</td><td class=num>0/4</td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td></tr>
+<tr><th scope=row><code>P14-split</code></th><td>param-flags</td><td>predict</td><td class=num>0/4</td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td></tr>
+<tr><th scope=row><code>P18-assoc</code></th><td>arrays</td><td>predict</td><td class=num>1/4</td><td class=num>20% <span class=k>2/10</span> <span class=ci>[6–51]</span></td><td class=num>60% <span class=k>6/10</span> <span class=ci>[31–83]</span></td><td class=num>60% <span class=k>6/10</span> <span class=ci>[31–83]</span></td></tr>
+<tr><th scope=row><code>W01-globqual</code></th><td>glob-qualifiers</td><td>produce</td><td class=num>1/4</td><td class=num>20% <span class=k>2/10</span> <span class=ci>[6–51]</span></td><td class=num>40% <span class=k>4/10</span> <span class=ci>[17–69]</span></td><td class=num>10% <span class=k>1/10</span> <span class=ci>[2–40]</span></td></tr>
+<tr><th scope=row><code>W02-recglob</code></th><td>glob-qualifiers</td><td>produce</td><td class=num>3/4</td><td class=num>60% <span class=k>6/10</span> <span class=ci>[31–83]</span></td><td class=num>40% <span class=k>4/10</span> <span class=ci>[17–69]</span></td><td class=num>70% <span class=k>7/10</span> <span class=ci>[40–89]</span></td></tr>
+<tr><th scope=row><code>W03-zparse</code></th><td>builtins</td><td>produce</td><td class=num>0/4</td><td class=num>0% <span class=k>0/10</span> <span class=ci>[0–28]</span></td><td class=num>10% <span class=k>1/10</span> <span class=ci>[2–40]</span></td><td class=num>30% <span class=k>3/10</span> <span class=ci>[11–60]</span></td></tr>
+<tr><th scope=row><code>W07-basenames</code></th><td>param-flags</td><td>produce</td><td class=num>2/4</td><td class=num>40% <span class=k>4/10</span> <span class=ci>[17–69]</span></td><td class=num>90% <span class=k>9/10</span> <span class=ci>[60–98]</span></td><td class=num>60% <span class=k>6/10</span> <span class=ci>[31–83]</span></td></tr></tbody></table></div>
+
+<div class=prose>
+<h3>Buckets per (model, item)</h3>
+<p>Each cell takes the majority outcome per arm. Only bucket B carries an apples-to-apples token comparison: both tool arms solve the item and knowledge alone fails.</p>
+</div>
+<div class=tbl><table><thead><tr><th>bucket</th><th>(model, item) cells</th></tr></thead><tbody>
+<tr><td>K — knowledge passes</td><td class=num>8</td></tr>
+<tr><td>B — both tool arms pass, knowledge fails</td><td class=num>9</td></tr>
+<tr><td>T — only CLI passes</td><td class=num>5</td></tr>
+<tr><td>M — only MCP passes</td><td class=num>4</td></tr>
+<tr><td>X — all fail</td><td class=num>18</td></tr></tbody></table></div>
+
+<div class=prose>
+<h2>Tokens and cost</h2>
+<p>Uncached input is <code>input_tokens + cache_write_tokens</code>, the method's cost proxy. Δ subtracts the same model's no-reference median. Dollars use list prices and cover cache reads, cache writes, output and reasoning.</p>
+</div>
+<figure class=fig><figcaption>Median uncached input tokens per session</figcaption><svg viewBox="0 0 720 266" role="img" aria-label="Median uncached input tokens per session" class=chart>
+<line x1="210.0" x2="210.0" y1="16" y2="240" class=grid />
+<text x="210.0" y="258" class=tick text-anchor=middle>0.0k</text>
+<line x1="320.0" x2="320.0" y1="16" y2="240" class=grid />
+<text x="320.0" y="258" class=tick text-anchor=middle>4.0k</text>
+<line x1="430.0" x2="430.0" y1="16" y2="240" class=grid />
+<text x="430.0" y="258" class=tick text-anchor=middle>8.0k</text>
+<line x1="540.0" x2="540.0" y1="16" y2="240" class=grid />
+<text x="540.0" y="258" class=tick text-anchor=middle>12.0k</text>
+<line x1="650.0" x2="650.0" y1="16" y2="240" class=grid />
+<text x="650.0" y="258" class=tick text-anchor=middle>16.0k</text>
+<text x="196" y="49.0" text-anchor=end class=lab>claude-haiku-5-5</text>
+<g class="mark s1"><title>claude-haiku-5-5 · none (knowledge): 0.3k</title><rect x="210" y="24" width="7.8" height="11" rx="2" class=bar /><text x="223.8" y="33.5" class=val>0.3k</text></g>
+<g class="mark s2"><title>claude-haiku-5-5 · zshref CLI: 3.4k</title><rect x="210" y="38" width="92.2" height="11" rx="2" class=bar /><text x="308.2" y="47.5" class=val>3.4k</text></g>
+<g class="mark s3"><title>claude-haiku-5-5 · zshref-mcp: 1.9k</title><rect x="210" y="52" width="50.8" height="11" rx="2" class=bar /><text x="266.8" y="61.5" class=val>1.9k</text></g>
+<text x="196" y="103.0" text-anchor=end class=lab>gpt-6-luna</text>
+<g class="mark s1"><title>gpt-6-luna · none (knowledge): 0.3k</title><rect x="210" y="78" width="7.8" height="11" rx="2" class=bar /><text x="223.8" y="87.5" class=val>0.3k</text></g>
+<g class="mark s2"><title>gpt-6-luna · zshref CLI: 4.0k</title><rect x="210" y="92" width="111.0" height="11" rx="2" class=bar /><text x="327.0" y="101.5" class=val>4.0k</text></g>
+<g class="mark s3"><title>gpt-6-luna · zshref-mcp: 5.0k</title><rect x="210" y="106" width="137.7" height="11" rx="2" class=bar /><text x="353.7" y="115.5" class=val>5.0k</text></g>
+<text x="196" y="157.0" text-anchor=end class=lab>deepseek-flash (no thinking)</text>
+<g class="mark s1"><title>deepseek-flash (no thinking) · none (knowledge): 0.2k</title><rect x="210" y="132" width="5.3" height="11" rx="2" class=bar /><text x="221.3" y="141.5" class=val>0.2k</text></g>
+<g class="mark s2"><title>deepseek-flash (no thinking) · zshref CLI: 5.6k</title><rect x="210" y="146" width="153.8" height="11" rx="2" class=bar /><text x="369.8" y="155.5" class=val>5.6k</text></g>
+<g class="mark s3"><title>deepseek-flash (no thinking) · zshref-mcp: 2.9k</title><rect x="210" y="160" width="78.7" height="11" rx="2" class=bar /><text x="294.7" y="169.5" class=val>2.9k</text></g>
+<text x="196" y="211.0" text-anchor=end class=lab>gemini-3.1-flash-lite</text>
+<g class="mark s1"><title>gemini-3.1-flash-lite · none (knowledge): 0.3k</title><rect x="210" y="186" width="8.3" height="11" rx="2" class=bar /><text x="224.3" y="195.5" class=val>0.3k</text></g>
+<g class="mark s2"><title>gemini-3.1-flash-lite · zshref CLI: 1.5k</title><rect x="210" y="200" width="42.5" height="11" rx="2" class=bar /><text x="258.5" y="209.5" class=val>1.5k</text></g>
+<g class="mark s3"><title>gemini-3.1-flash-lite · zshref-mcp: 14.9k</title><rect x="210" y="214" width="407.4" height="11" rx="2" class=bar /><text x="623.4" y="223.5" class=val>14.9k</text></g>
+</svg><div class=legend><span><i class="sw s1"></i>none (knowledge)</span><span><i class="sw s2"></i>zshref CLI</span><span><i class="sw s3"></i>zshref-mcp</span></div></figure>
+<figure class=fig><figcaption>Dollars per passed item (all spend in the cell ÷ passes)</figcaption><svg viewBox="0 0 720 266" role="img" aria-label="Dollars per passed item" class=chart>
+<line x1="210.0" x2="210.0" y1="16" y2="240" class=grid />
+<text x="210.0" y="258" class=tick text-anchor=middle>$0.0000</text>
+<line x1="320.0" x2="320.0" y1="16" y2="240" class=grid />
+<text x="320.0" y="258" class=tick text-anchor=middle>$0.0064</text>
+<line x1="430.0" x2="430.0" y1="16" y2="240" class=grid />
+<text x="430.0" y="258" class=tick text-anchor=middle>$0.0127</text>
+<line x1="540.0" x2="540.0" y1="16" y2="240" class=grid />
+<text x="540.0" y="258" class=tick text-anchor=middle>$0.0191</text>
+<line x1="650.0" x2="650.0" y1="16" y2="240" class=grid />
+<text x="650.0" y="258" class=tick text-anchor=middle>$0.0254</text>
+<text x="196" y="49.0" text-anchor=end class=lab>claude-haiku-5-5</text>
+<g class="mark s1"><title>claude-haiku-5-5 · none (knowledge): $0.0027</title><rect x="210" y="24" width="47.2" height="11" rx="2" class=bar /><text x="263.2" y="33.5" class=val>$0.0027</text></g>
+<g class="mark s2"><title>claude-haiku-5-5 · zshref CLI: $0.0029</title><rect x="210" y="38" width="50.1" height="11" rx="2" class=bar /><text x="266.1" y="47.5" class=val>$0.0029</text></g>
+<g class="mark s3"><title>claude-haiku-5-5 · zshref-mcp: $0.0023</title><rect x="210" y="52" width="39.5" height="11" rx="2" class=bar /><text x="255.5" y="61.5" class=val>$0.0023</text></g>
+<text x="196" y="103.0" text-anchor=end class=lab>gpt-6-luna</text>
+<g class="mark s1"><title>gpt-6-luna · none (knowledge): $0.0036</title><rect x="210" y="78" width="63.0" height="11" rx="2" class=bar /><text x="279.0" y="87.5" class=val>$0.0036</text></g>
+<g class="mark s2"><title>gpt-6-luna · zshref CLI: $0.0020</title><rect x="210" y="92" width="34.1" height="11" rx="2" class=bar /><text x="250.1" y="101.5" class=val>$0.0020</text></g>
+<g class="mark s3"><title>gpt-6-luna · zshref-mcp: $0.0025</title><rect x="210" y="106" width="43.9" height="11" rx="2" class=bar /><text x="259.9" y="115.5" class=val>$0.0025</text></g>
+<text x="196" y="157.0" text-anchor=end class=lab>deepseek-flash (no thinking)</text>
+<g class="mark s1"><title>deepseek-flash (no thinking) · none (knowledge): $0.0033</title><rect x="210" y="132" width="56.9" height="11" rx="2" class=bar /><text x="272.9" y="141.5" class=val>$0.0033</text></g>
+<g class="mark s2"><title>deepseek-flash (no thinking) · zshref CLI: $0.0045</title><rect x="210" y="146" width="77.8" height="11" rx="2" class=bar /><text x="293.8" y="155.5" class=val>$0.0045</text></g>
+<g class="mark s3"><title>deepseek-flash (no thinking) · zshref-mcp: $0.0036</title><rect x="210" y="160" width="62.8" height="11" rx="2" class=bar /><text x="278.8" y="169.5" class=val>$0.0036</text></g>
+<text x="196" y="211.0" text-anchor=end class=lab>gemini-3.1-flash-lite</text>
+<g class="mark s1"><title>gemini-3.1-flash-lite · none (knowledge): $0.0070</title><rect x="210" y="186" width="120.5" height="11" rx="2" class=bar /><text x="336.5" y="195.5" class=val>$0.0070</text></g>
+<g class="mark s2"><title>gemini-3.1-flash-lite · zshref CLI: $0.0074</title><rect x="210" y="200" width="128.7" height="11" rx="2" class=bar /><text x="344.7" y="209.5" class=val>$0.0074</text></g>
+<g class="mark s3"><title>gemini-3.1-flash-lite · zshref-mcp: $0.0235</title><rect x="210" y="214" width="407.4" height="11" rx="2" class=bar /><text x="623.4" y="223.5" class=val>$0.0235</text></g>
+</svg><div class=legend><span><i class="sw s1"></i>none (knowledge)</span><span><i class="sw s2"></i>zshref CLI</span><span><i class="sw s3"></i>zshref-mcp</span></div></figure>
+<div class=tbl><table><thead><tr><th>model</th><th>arm</th><th>sessions</th><th>median $ / session</th><th>$ per pass</th><th>median uncached input tok</th><th>Δ vs none</th><th>median total input tok</th><th>median output tok</th><th>median model calls</th><th>median wall s</th><th>spend</th></tr></thead><tbody>
+<tr><th scope=row>claude-haiku-5-5</th><td>none (knowledge)</td><td class=num>33</td><td class=num>$0.00086</td><td class=num>$0.0027</td><td class=num>284</td><td class=num>0</td><td class=num>284</td><td class=num>1,662</td><td class=num>1</td><td class=num>12.8</td><td class=num>$0.027</td></tr>
+<tr><th scope=row></th><td>zshref CLI</td><td class=num>33</td><td class=num>$0.00137</td><td class=num>$0.0029</td><td class=num>3,362</td><td class=num>+3,078</td><td class=num>10,214</td><td class=num>1,977</td><td class=num>3</td><td class=num>18.9</td><td class=num>$0.049</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>33</td><td class=num>$0.00102</td><td class=num>$0.0023</td><td class=num>1,853</td><td class=num>+1,569</td><td class=num>9,443</td><td class=num>1,399</td><td class=num>3</td><td class=num>18.0</td><td class=num>$0.041</td></tr>
+<tr><th scope=row>gpt-6-luna</th><td>none (knowledge)</td><td class=num>33</td><td class=num>$0.00055</td><td class=num>$0.0036</td><td class=num>284</td><td class=num>0</td><td class=num>284</td><td class=num>1,051</td><td class=num>1</td><td class=num>22.8</td><td class=num>$0.018</td></tr>
+<tr><th scope=row></th><td>zshref CLI</td><td class=num>33</td><td class=num>$0.00086</td><td class=num>$0.0020</td><td class=num>4,046</td><td class=num>+3,762</td><td class=num>12,919</td><td class=num>639</td><td class=num>5</td><td class=num>25.4</td><td class=num>$0.028</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>33</td><td class=num>$0.00096</td><td class=num>$0.0025</td><td class=num>5,021</td><td class=num>+4,737</td><td class=num>20,301</td><td class=num>532</td><td class=num>5</td><td class=num>25.0</td><td class=num>$0.033</td></tr>
+<tr><th scope=row>deepseek-flash (no thinking)</th><td>none (knowledge)</td><td class=num>33</td><td class=num>$0.00023</td><td class=num>$0.0033</td><td class=num>192</td><td class=num>0</td><td class=num>192</td><td class=num>332</td><td class=num>1</td><td class=num>2.6</td><td class=num>$0.020</td></tr>
+<tr><th scope=row></th><td>zshref CLI</td><td class=num>33</td><td class=num>$0.00162</td><td class=num>$0.0045</td><td class=num>5,609</td><td class=num>+5,417</td><td class=num>24,957</td><td class=num>1,103</td><td class=num>7</td><td class=num>14.8</td><td class=num>$0.058</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>33</td><td class=num>$0.00118</td><td class=num>$0.0036</td><td class=num>2,871</td><td class=num>+2,679</td><td class=num>27,037</td><td class=num>1,079</td><td class=num>6</td><td class=num>9.2</td><td class=num>$0.040</td></tr>
+<tr><th scope=row>gemini-3.1-flash-lite</th><td>none (knowledge)</td><td class=num>11</td><td class=num>$0.00121</td><td class=num>$0.0070</td><td class=num>303</td><td class=num>0</td><td class=num>303</td><td class=num>754</td><td class=num>1</td><td class=num>14.8</td><td class=num>$0.014</td></tr>
+<tr><th scope=row></th><td>zshref CLI</td><td class=num>11</td><td class=num>$0.00174</td><td class=num>$0.0074</td><td class=num>1,549</td><td class=num>+1,246</td><td class=num>1,549</td><td class=num>905</td><td class=num>1</td><td class=num>19.9</td><td class=num>$0.037</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>11</td><td class=num>$0.01342</td><td class=num>$0.0235</td><td class=num>14,856</td><td class=num>+14,553</td><td class=num>19,303</td><td class=num>4,071</td><td class=num>4</td><td class=num>36.6</td><td class=num>$0.141</td></tr></tbody></table></div>
+<div class=prose>
+<p class=note>Gemini through opencode got almost no cache hits, so every MCP call re-paid for the tool schemas: 14.9k uncached tokens median and $0.024 per pass, the most expensive cell by far. Its CLI arm is cheap only because it never called the CLI.</p>
+
+<h2>Tool use</h2>
+<p>"Used" means at least one reference call in the session: a <code>zshref</code> invocation in the trace, or an MCP <code>tools/call</code>. "zsh/man attempts" counts calls to refuse stubs installed under those names.</p>
+</div>
+<div class=tbl><table><thead><tr><th>model</th><th>arm</th><th>use rate</th><th>median ref calls (when used)</th><th>median ref output chars (when used)</th><th>pass when used</th><th>pass when not used</th><th>--help calls</th><th>CLI errors</th><th>zsh/man attempts</th><th>round cap</th><th>no answer block</th></tr></thead><tbody>
+<tr><th scope=row>claude-haiku-5-5</th><td>zshref CLI</td><td class=num>67% <span class=k>22/33</span></td><td class=num>6</td><td class=num>7,048</td><td class=num>45% <span class=k>10/22</span> <span class=ci>[27–65]</span></td><td class=num>64% <span class=k>7/11</span> <span class=ci>[35–85]</span></td><td class=num>3</td><td class=num>37</td><td class=num>0</td><td class=num>0</td><td class=num>0</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>73% <span class=k>24/33</span></td><td class=num>3</td><td class=num>1,706</td><td class=num>54% <span class=k>13/24</span> <span class=ci>[35–72]</span></td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td><td class=num>–</td><td class=num>–</td><td class=num>0</td><td class=num>0</td><td class=num>0</td></tr>
+<tr><th scope=row>gpt-6-luna</th><td>zshref CLI</td><td class=num>100% <span class=k>33/33</span></td><td class=num>6</td><td class=num>8,277</td><td class=num>42% <span class=k>14/33</span> <span class=ci>[27–59]</span></td><td class=num>–</td><td class=num>5</td><td class=num>4</td><td class=num>0</td><td class=num>0</td><td class=num>0</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>100% <span class=k>33/33</span></td><td class=num>6</td><td class=num>3,674</td><td class=num>39% <span class=k>13/33</span> <span class=ci>[25–56]</span></td><td class=num>–</td><td class=num>–</td><td class=num>–</td><td class=num>0</td><td class=num>0</td><td class=num>0</td></tr>
+<tr><th scope=row>deepseek-flash (no thinking)</th><td>zshref CLI</td><td class=num>100% <span class=k>33/33</span></td><td class=num>15</td><td class=num>22,686</td><td class=num>39% <span class=k>13/33</span> <span class=ci>[25–56]</span></td><td class=num>–</td><td class=num>31</td><td class=num>41</td><td class=num>8</td><td class=num>1</td><td class=num>1</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>100% <span class=k>33/33</span></td><td class=num>10</td><td class=num>7,976</td><td class=num>33% <span class=k>11/33</span> <span class=ci>[20–50]</span></td><td class=num>–</td><td class=num>–</td><td class=num>–</td><td class=num>6</td><td class=num>0</td><td class=num>0</td></tr>
+<tr><th scope=row>gemini-3.1-flash-lite</th><td>zshref CLI</td><td class=num>0% <span class=k>0/11</span></td><td class=num>–</td><td class=num>–</td><td class=num>–</td><td class=num>45% <span class=k>5/11</span> <span class=ci>[21–72]</span></td><td class=num>0</td><td class=num>0</td><td class=num>2</td><td class=num>0</td><td class=num>0</td></tr>
+<tr><th scope=row></th><td>zshref-mcp</td><td class=num>82% <span class=k>9/11</span></td><td class=num>6</td><td class=num>5,986</td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td><td class=num>50% <span class=k>1/2</span> <span class=ci>[9–91]</span></td><td class=num>–</td><td class=num>–</td><td class=num>1</td><td class=num>0</td><td class=num>0</td></tr></tbody></table></div>
+<div class=prose>
+<p>MCP tool mix, tool arm C only: <code>zsh_docs</code> 463 calls, <code>zsh_search</code> 114 and <code>zsh_list</code> 86, all models summed over the 11 analysed items. Deepseek made 334 of the 663 calls.</p>
+
+<h2>Campaign mode</h2>
+<p>One session per (model, arm, replicate) for haiku, luna and deepseek, 3 replicates each. Every session posed W03, P02 and W01, one per turn, rotated so each item sits at each position once per model and arm.</p>
+</div>
+<div class=tbl><table><thead><tr><th>arm</th><th>position</th><th>pass</th><th>use</th><th>median ref calls</th><th>--help calls</th><th>CLI errors</th><th>median uncached input tok</th><th>median $ / turn</th></tr></thead><tbody>
+<tr><th scope=row>none (knowledge)</th><td class=num>1</td><td class=num>0% <span class=k>0/9</span> <span class=ci>[0–30]</span></td><td class=num>0/9</td><td class=num>0</td><td class=num>–</td><td class=num>–</td><td class=num>284</td><td class=num>$0.00065</td></tr>
+<tr><th scope=row></th><td class=num>2</td><td class=num>0% <span class=k>0/9</span> <span class=ci>[0–30]</span></td><td class=num>0/9</td><td class=num>0</td><td class=num>–</td><td class=num>–</td><td class=num>1,771</td><td class=num>$0.00061</td></tr>
+<tr><th scope=row></th><td class=num>3</td><td class=num>0% <span class=k>0/9</span> <span class=ci>[0–30]</span></td><td class=num>0/9</td><td class=num>0</td><td class=num>–</td><td class=num>–</td><td class=num>893</td><td class=num>$0.00046</td></tr>
+<tr><th scope=row>zshref CLI</th><td class=num>1</td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td><td class=num>8/9</td><td class=num>7</td><td class=num>4</td><td class=num>6</td><td class=num>4,421</td><td class=num>$0.00113</td></tr>
+<tr><th scope=row></th><td class=num>2</td><td class=num>33% <span class=k>3/9</span> <span class=ci>[12–65]</span></td><td class=num>8/9</td><td class=num>7</td><td class=num>0</td><td class=num>0</td><td class=num>2,309</td><td class=num>$0.00111</td></tr>
+<tr><th scope=row></th><td class=num>3</td><td class=num>11% <span class=k>1/9</span> <span class=ci>[2–44]</span></td><td class=num>9/9</td><td class=num>7</td><td class=num>0</td><td class=num>4</td><td class=num>2,701</td><td class=num>$0.00117</td></tr>
+<tr><th scope=row>zshref-mcp</th><td class=num>1</td><td class=num>33% <span class=k>3/9</span> <span class=ci>[12–65]</span></td><td class=num>8/9</td><td class=num>8</td><td class=num>–</td><td class=num>–</td><td class=num>4,522</td><td class=num>$0.00138</td></tr>
+<tr><th scope=row></th><td class=num>2</td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td><td class=num>8/9</td><td class=num>7</td><td class=num>–</td><td class=num>–</td><td class=num>2,668</td><td class=num>$0.00083</td></tr>
+<tr><th scope=row></th><td class=num>3</td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td><td class=num>9/9</td><td class=num>5</td><td class=num>–</td><td class=num>–</td><td class=num>3,083</td><td class=num>$0.00119</td></tr></tbody></table></div>
+<div class=tbl><table><thead><tr><th>model</th><th>none (knowledge)</th><th>zshref CLI</th><th>zshref-mcp</th></tr></thead><tbody>
+<tr><th scope=row>claude-haiku-5-5</th><td class=num>0% <span class=k>0/9</span> <span class=ci>[0–30]</span></td><td class=num>44% <span class=k>4/9</span> <span class=ci>[19–73]</span></td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td></tr>
+<tr><th scope=row>gpt-6-luna</th><td class=num>0% <span class=k>0/9</span> <span class=ci>[0–30]</span></td><td class=num>22% <span class=k>2/9</span> <span class=ci>[6–55]</span></td><td class=num>56% <span class=k>5/9</span> <span class=ci>[27–81]</span></td></tr>
+<tr><th scope=row>deepseek-flash (no thinking)</th><td class=num>0% <span class=k>0/9</span> <span class=ci>[0–30]</span></td><td class=num>33% <span class=k>3/9</span> <span class=ci>[12–65]</span></td><td class=num>33% <span class=k>3/9</span> <span class=ci>[12–65]</span></td></tr></tbody></table></div>
+<div class=prose>
+<p class=note>n = 9 per (arm, position) cell. The CLI arm's 5/9 → 3/9 → 1/9 slope comes almost entirely from P02 failing at position 3, for different reasons per model (copied doc-example values, broken line layout, wrong semantics). A no-reference arm at 0/27 rules out a position effect without tools.</p>
+
+<h2>Setup</h2>
+<h3>Arms</h3>
+<ul>
+  <li><b>A — none:</b> no tools at all (<code>--no-tools</code>), so pure prediction from priors.</li>
+  <li><b>B — zshref CLI:</b> the runner's shell plus <code>zshref</code> on PATH, traced by the shim. The prompt says: "<code>zshref</code>, a command-line zsh 5.9 reference, is on PATH."</li>
+  <li><b>C — zshref-mcp:</b> the runner's shell plus the stdio MCP server, traced by mcp-proxy. The prompt says: "A zsh 5.9 reference is available to you through the MCP tools of the <code>zshref</code> server."</li>
+</ul>
+<p>All arms run on a Linux image without zsh or man pages. In B and C, <code>zsh</code> and <code>man</code> are refuse stubs that print an error and exit 127. One system prompt serves all runners and arms; it states that zsh and its docs are absent. Each session allows 15 calls per tool, and turns time out after 300 s. Binaries are <code>zshref 0.1.0-alpha.5</code>, built fresh for linux-aarch64 from the working tree at <code>8737b41</code>.</p>
+
+<h3>Fleet</h3>
+</div>
+<div class=tbl><table><thead><tr><th>label</th><th>model</th><th>runner</th><th>effort</th><th>list price / 1M (in · cached · out)</th><th>reps per cell</th></tr></thead><tbody>
+<tr><th scope=row>haiku</th><td><code>claude-haiku-5-5</code></td><td>claude (<code>claude -p --bare</code>, Bash+Read)</td><td>low</td><td class=num>$0.10 · $0.01 · $0.50</td><td class=num>3</td></tr>
+<tr><th scope=row>luna</th><td><code>openai/gpt-6-luna</code></td><td>opencode (<code>--tools bash</code>)</td><td>low</td><td class=num>$0.10 · $0.01 · $0.50</td><td class=num>3</td></tr>
+<tr><th scope=row>deepseek</th><td><code>deepseek-flash</code> (V4.1-Flash)</td><td>deepseek (direct API, one bash tool)</td><td>none (no thinking)</td><td class=num>$0.15 · $0.003 · $0.60 (off-peak)</td><td class=num>3</td></tr>
+<tr><th scope=row>gemini</th><td><code>google/gemini-3.1-flash-lite</code></td><td>opencode (<code>--tools bash</code>)</td><td>low</td><td class=num>$0.25 · $0.025 · $1.50</td><td class=num>1</td></tr>
+</tbody></table></div>
+<div class=prose>
+<ul>
+  <li>gemini-3.5-flash-lite was skipped as asked. gemini-2.5-flash-lite is retired for new keys, so 3.1-flash-lite is the cheapest usable Gemini, at 2.5–3× the others' price. It ran 1 replicate.</li>
+  <li>Deepseek ran with thinking at <code>low</code> in calibration and the pilot, and still reasoned for up to ~35k tokens (3 min) per answer. Measurement batches switched it to <code>none</code>; its calibration rates come from the thinking config.</li>
+  <li>One runner per model, as briefed. Cache-write prices are assumed at 1.25× input for Anthropic and equal to input elsewhere.</li>
+</ul>
+
+<h3>Items and grading</h3>
+<p>The items are 12 zsh 5.9 tasks of two shapes. <b>Predict</b> items ask for the exact stdout of a script. <b>Produce</b> items ask for zsh code that must pass 1–5 execution tests. The areas weight toward everyday zsh scripting: parameter-expansion flags and forms (6), arrays and subscripts (2), glob qualifiers (2), builtins (1) and arithmetic (1). Answers come in a fenced <code>answer</code> block. They run in a no-network zsh 5.9 container, as uid 1000; produce items for globs run with <code>path=()</code>, so external commands are unavailable. Expected outputs come from running reference solutions, and the self-check passes on all items. An expression-only item fails an answer that uses loops or command substitution.</p>
+<p>The study started with 22 candidates crafted from zsh knowledge. Six passed for every model in the knowledge-only calibration and were dropped. Four more (P05, P08, P09, P19, each at 3/4 in calibration) were cut to fit the time budget. P10 turned out to be unanswerable from the reference and is reported apart. Crafting came after a short look at <code>zshref --help</code> and a few doc lookups, to check that items were answerable from the reference, which the brief asked for. That look may bias items toward what the reference documents.</p>
+</div>
+<details class=prose><summary>All 12 measured items</summary>
+<details><summary><code>P01-pad</code> <span class=pill>predict</span> <span class=pill>param-flags</span></summary><pre><code>n=42; s=abcdef
+print -r -- ${(l:5::0:)n} ${(r:4::.:)n} ${(l:3:)s}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P02-zip</code> <span class=pill>predict</span> <span class=pill>param-expn</span></summary><pre><code>a=(1 2 3 4); b=(x y); c=(2 4 6)
+print -r -- ${a:^b}
+print -r -- ${a:^^b}
+print -r -- ${a:|c}
+print -r -- ${a:*c}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P03-subscr</code> <span class=pill>predict</span> <span class=pill>arrays</span></summary><pre><code>a=(apple banana cherry banana)
+print -r -- ${a[(i)banana]} ${a[(I)banana]} ${a[(i)kiwi]} ${a[(I)kiwi]} ${a[(r)b*]} ${a[(R)*e*]}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P06-modif</code> <span class=pill>predict</span> <span class=pill>param-expn</span></summary><pre><code>f=/usr/local/lib/libfoo.so.1.2
+print -r -- ${f:t} ${f:t:r} ${f:h:t} ${f:e} ${f:t2} ${f:h2}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P10-arith</code> <span class=pill>predict</span> <span class=pill>arith</span></summary><pre><code>print -r -- $(( 7 / 2 )) $(( 7 / 2. )) $(( [#16] 255 )) $(( [##2] 10 )) $(( ##A )) $(( 2 ** 0.5 &gt; 1.4 ))</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P13-quote</code> <span class=pill>predict</span> <span class=pill>param-flags</span></summary><pre><code>x=&quot;it&#x27;s a \$test&quot;
+print -r -- ${(q)x}; print -r -- ${(qq)x}; print -r -- ${(qqq)x}; print -r -- ${(q-)x}; print -r -- ${(q+)x}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P14-split</code> <span class=pill>predict</span> <span class=pill>param-flags</span></summary><pre><code>cmd=&#x27;ls -l &quot;my file&quot; foo\ bar&#x27;
+w=( ${(z)cmd} ); print -r -- ${#w} ${w[3]} ${(Q)w[4]}
+lines=$&#x27;a\n\nb\n&#x27;; print -r -- ${#${(f)lines}} ${#${(@f)lines}}; x=(&quot;${(@f)lines}&quot;); print -r -- ${#x}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>P18-assoc</code> <span class=pill>predict</span> <span class=pill>arrays</span></summary><pre><code>typeset -A h=(b on a off c on dd on)
+print -r -- ${(ok)h} / ${(o)${(k)h[(R)on]}} / ${#h} / ${h[(i)c*]} / ${(o)${(k)h[(I)?]}}</code></pre><p class=note>Graded against the real output of <code>zsh -f</code> 5.9.</p></details>
+<details><summary><code>W01-globqual</code> <span class=pill>produce</span> <span class=pill>glob-qualifiers</span></summary><pre><code>Write zsh code that prints, one per line, the names of the
+files in the current directory that are: regular files (not directories, not
+symlinks), strictly larger than 1 KiB (1024 bytes), the three most recently
+modified ones only, newest first. If nothing matches it must print nothing
+and not error. Use only zsh itself (no external commands such as ls, find,
+stat, sort or head — they are not on PATH when your code runs).</code></pre><p class=note>Reference solution: <code>print -rl -- *(.NLk+1om[1,3])</code> · 3 execution tests</p></details>
+<details><summary><code>W02-recglob</code> <span class=pill>produce</span> <span class=pill>glob-qualifiers</span></summary><pre><code>Write zsh code that prints, one per line, the relative paths
+of all regular files named `*.log` anywhere below the current directory —
+including inside hidden directories and including hidden files — but
+excluding everything inside any directory named `node_modules` (at any
+depth). Use only zsh itself (no external commands such as find, grep or ls —
+they are not on PATH when your code runs). Output order does not matter.</code></pre><p class=note>Reference solution: <code>setopt extendedglob; print -rl -- **/*.log~(*/|)node_modules/*(D.N)</code> · 1 execution tests</p></details>
+<details><summary><code>W03-zparse</code> <span class=pill>produce</span> <span class=pill>builtins</span></summary><pre><code>Write a zsh function `parse` that parses its arguments with
+the `zparseopts` builtin and then prints exactly one line:
+`verbose=&lt;V&gt; output=&lt;O&gt; args=&lt;A&gt;` where V is how many times `-v` was given
+(0 if never), O is the argument of the output option (empty if not given) and
+A is the remaining arguments joined with commas (empty if none). The output
+option may be given as `-o FILE`, `--output FILE` or `--output=FILE`; if
+given more than once the last one wins. Options come before the positional
+arguments; `--` ends option parsing. Example: `parse -v -o x a b` prints
+`verbose=1 output=x args=a,b`.</code></pre><p class=note>Reference solution: <code>parse() {</code> … · 5 execution tests</p></details>
+<details><summary><code>W07-basenames</code> <span class=pill>produce</span> <span class=pill>param-flags</span></summary><pre><code>Given an array `files` of file paths, write a single zsh
+expression that, used as `print -r -- EXPR`, prints the distinct base names
+(final path component) with their last extension removed, sorted
+alphabetically, joined with commas — e.g. for
+`files=(/a/x.txt /b/y.tar.gz ./x.md)` it prints `x,y.tar`. No loops, no
+command substitution, no external commands: one expansion expression only.</code></pre><p class=note>Reference solution: <code>${(j:,:)${(ou)${files:t:r}}}</code> · 2 execution tests</p></details>
+</details>
+
+<div class=prose>
+<h2>Sessions, faults, spend</h2>
+</div>
+<div class=tbl><table><thead><tr><th>model</th><th>none (knowledge)</th><th>zshref CLI</th><th>zshref-mcp</th><th>total</th></tr></thead><tbody>
+<tr><th scope=row>claude-haiku-5-5</th><td class=num>33</td><td class=num>33</td><td class=num>33</td><td class=num>99</td></tr>
+<tr><th scope=row>gpt-6-luna</th><td class=num>33</td><td class=num>33</td><td class=num>33</td><td class=num>99</td></tr>
+<tr><th scope=row>deepseek-flash (no thinking)</th><td class=num>33</td><td class=num>33</td><td class=num>33</td><td class=num>99</td></tr>
+<tr><th scope=row>gemini-3.1-flash-lite</th><td class=num>11</td><td class=num>11</td><td class=num>11</td><td class=num>33</td></tr>
+<tr class=tot><th scope=row>total</th><td class=num>110</td><td class=num>110</td><td class=num>110</td><td class=num>330</td></tr></tbody></table></div>
+<div class=prose>
+<p>Task-mode sessions per cell, P10 excluded. P10 adds 2 sessions per cell for the cheap models and 1 for gemini; the main batch totals 351 sessions. One session faulted: deepseek on W01 in the CLI arm hit its round cap with no final answer. It counts as a failure of that arm. That same session, after its 15 calls ran out, read the PATH wrapper and the shim and tried to lift the budget with <code>CLI_UX_PROBE_MAX_INVOCATIONS=0</code>. The attempt failed because the wrapper re-exports the cap. Three more deepseek CLI sessions (pilot, campaign) tripped the probe-awareness heuristic without bypassing the trace.</p>
+</div>
+<div class=tbl><table><thead><tr><th>batch</th><th>spend (list prices)</th></tr></thead><tbody>
+<tr><td>sanity</td><td class=num>$0.008</td></tr>
+<tr><td>calib</td><td class=num>$0.223</td></tr>
+<tr><td>pilot</td><td class=num>$0.142</td></tr>
+<tr><td>main</td><td class=num>$0.539</td></tr>
+<tr><td>camp</td><td class=num>$0.085</td></tr>
+<tr class=tot><td>total</td><td class=num>$0.996</td></tr></tbody></table></div>
+<div class=prose>
+<p>Execution time across batches was about 27 minutes: calibration 6.3, pilot 2.7, main replicates 1–2 11.2, campaign 2.8, main replicate 3 3.8 and sanity 0.5. Calibration was the slowest because of deepseek's thinking. Sessions ran 9 at a time on a 4-CPU, 6 GB colima VM.</p>
+
+<h3>Batches and design changes</h3>
+<ol>
+  <li>Sanity probes, 12 sessions: every model reachable, <code>zshref</code> on PATH, MCP called.</li>
+  <li>Calibration: 22 items, arm A, 4 models, 1 replicate.</li>
+  <li>Pilot: 4 items, arms B and C, 4 models. It showed the deepseek cost and the gemini non-use.</li>
+  <li>Main: 12 items, arms A/B/C, replicates 0–1, with deepseek switched to <code>none</code>.</li>
+  <li>Campaign: 3 items × 3 turns.</li>
+  <li>Main replicate 2, 11 items, cheap models. It was added after an interim look; the stopping rule (3 replicates for the cheap models, 1 for gemini) was set at that point, before the replicate ran.</li>
+</ol>
+
+<h2>Caveats</h2>
+<ul>
+  <li>n is small: 33 sessions per (model, arm) cell, 110 per arm. The CLI-vs-MCP result means no difference large enough to see here, not proven equivalence. A ±10-point difference would go undetected.</li>
+  <li>The orchestrator crafted the items, so they are not a sample of real-world zsh work. Two items (P13, P14) stayed at zero in every arm.</li>
+  <li>Runner and model are confounded: each model ran under one harness, as briefed.</li>
+  <li>The CLI prompt names the binary, and the MCP prompt names the server. Models see the MCP tool list at connect, which costs schema tokens but needs no discovery.</li>
+  <li>The opencode adapter under-reported output tokens because it left out reasoning. It was fixed mid-study, and the costs above for earlier batches are corrected.</li>
+</ul>
+
+<h2>Skill changes (working copy, uncommitted)</h2>
+<ul>
+  <li><code>rig/runners/opencode/adapter</code>: <code>output_tokens</code> now includes reasoning, as the <code>Usage</code> contract requires. Its fixture is updated and <code>test/adapters</code> passes.</li>
+  <li><code>rig/runners/deepseek/README.md</code>: notes that flash at <code>low</code> still reasons at length, and that <code>none</code> bounds cost and wall time.</li>
+</ul>
+</div>
+</div>
+
+
+</body></html>
